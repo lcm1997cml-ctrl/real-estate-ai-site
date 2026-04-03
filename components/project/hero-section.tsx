@@ -20,13 +20,25 @@ export function HeroSection({ project, waHref, compareHref, compactStatsText = f
   const psfNum = parseNumber(project.avgPricePerSqft);
 
   return (
-    <section
-      className="relative overflow-hidden rounded-2xl bg-cover bg-center"
-      style={{
-        backgroundImage: `linear-gradient(to bottom, rgba(17,17,17,.6) 0%, rgba(17,17,17,.4) 60%, rgba(17,17,17,.7) 100%), url(${heroImage})`,
-      }}
-    >
-      <div className="px-6 py-14 text-white md:px-10 md:py-20">
+    <section className="relative overflow-hidden rounded-2xl">
+      {heroImage ? (
+        <img
+          src={heroImage}
+          alt={`${project.name} 外觀`}
+          className="absolute inset-0 h-full w-full object-cover"
+          loading="eager"
+          fetchPriority="high"
+        />
+      ) : null}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(to bottom, rgba(17,17,17,.6) 0%, rgba(17,17,17,.4) 60%, rgba(17,17,17,.7) 100%)",
+        }}
+        aria-hidden
+      />
+      <div className="relative px-6 py-14 text-white md:px-10 md:py-20">
         <p className="text-xs font-medium tracking-widest text-amber-300 uppercase">
           香港一手樓盤焦點
         </p>

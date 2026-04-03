@@ -45,7 +45,11 @@ export function FloorplanSection({ images, projectName }: Props) {
           >
             <img
               src={image}
-              alt={`${projectName} 平面圖 ${idx + 1}`}
+              alt={
+                images.length > 1
+                  ? `${projectName} 平面圖 ${idx + 1}`
+                  : `${projectName} 平面圖`
+              }
               className={
                 isSingle
                   ? "h-auto w-full max-h-[min(640px,85vh)] object-contain object-center"
@@ -80,7 +84,11 @@ export function FloorplanSection({ images, projectName }: Props) {
           </button>
           <img
             src={images[activeIdx!]}
-            alt={`${projectName} 平面圖`}
+            alt={
+              images.length > 1
+                ? `${projectName} 平面圖 ${activeIdx! + 1}`
+                : `${projectName} 平面圖`
+            }
             className="max-h-[90%] max-w-[90%] object-contain"
             onClick={(e) => e.stopPropagation()}
             onError={() => {

@@ -1,7 +1,9 @@
 import { Metadata } from "next";
 
 const SITE_NAME = "香港樓盤數據分析";
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://example.com";
+
+/** Canonical site origin (no trailing slash). Used for canonical URLs, OG, JSON-LD. */
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://example.com";
 
 type SeoInput = {
   title: string;

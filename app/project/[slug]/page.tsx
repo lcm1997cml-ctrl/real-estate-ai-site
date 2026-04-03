@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { projects as fallbackProjects } from "@/data/projects";
-import { buildMetadata } from "@/lib/seo";
+import { buildMetadata, buildProjectJsonLd, SITE_URL } from "@/lib/seo";
 import { getProjectWhatsAppUrl } from "@/lib/whatsapp";
 import {
   getProjectDetailBySlug,
@@ -20,7 +20,11 @@ import { FAQSection } from "@/components/project/faq-section";
 import { CTASection } from "@/components/common/cta-section";
 import { ArticleSection } from "@/components/project/article-section";
 import { Breadcrumbs } from "@/components/common/breadcrumbs";
-import { resolveProjectGalleryImages, resolveProjectNeighborhoodImage } from "@/lib/project-media";
+import {
+  resolveProjectGalleryImages,
+  resolveProjectHeroImage,
+  resolveProjectNeighborhoodImage,
+} from "@/lib/project-media";
 import { parseHkdPrice } from "@/lib/mortgage";
 
 export function generateStaticParams() {
@@ -35,11 +39,17 @@ export async function generateMetadata({
   const { slug } = await params;
   const project = await getProjectDetailBySlug(slug);
   if (!project) return {};
+  const title = `${project.name}｜呎價、戶型、按揭分析｜香港樓盤資訊`;
+  const description = `查看 ${project.name} 最新樓盤資料，包括戶型、呎價、按揭供款及周邊配套，幫助你快速比較與決策。`;
+  const heroPath = resolveProjectHeroImage(project);
+  const ogImage =
+    heroPath && (heroPath.startsWith("http") ? heroPath : `${SITE_URL}${heroPath}`);
   return buildMetadata({
-    title: `${project.name} | ${project.district} 新盤數據分析`,
-    description: `${project.name} 入場價 ${project.priceFrom}、呎價 ${project.avgPricePerSqft}。查看戶型、供款估算、同區比較及客觀優缺點分析，協助置業決策。`,
+    title,
+    description,
     path: `/project/${project.slug}`,
     keywords: project.seoKeywords,
+    ogImage: ogImage || undefined,
   });
 }
 
@@ -54,6 +64,11 @@ export default async function ProjectPage({
   const isLaMirabelle = project.slug === "la-mirabelle";
   const galleryImages = resolveProjectGalleryImages(project);
   const neighborhoodImage = resolveProjectNeighborhoodImage(project);
+  const heroForJsonLd = resolveProjectHeroImage(project);
+  const projectPageUrl = `${SITE_URL}/project/${project.slug}`;
+  const heroAbsolute =
+    heroForJsonLd &&
+    (heroForJsonLd.startsWith("http") ? heroForJsonLd : `${SITE_URL}${heroForJsonLd}`);
 
   const allProjects = await getProjects();
   const chartProjects = allProjects.length > 0 ? allProjects : fallbackProjects;
@@ -77,6 +92,19 @@ export default async function ProjectPage({
 
   return (
     <div className="mx-auto max-w-6xl space-y-10 px-4 py-8 md:px-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: buildProjectJsonLd({
+            name: project.name,
+            description: project.shortDescription,
+            url: projectPageUrl,
+            image: heroAbsolute,
+            priceFrom: project.priceFrom,
+            district: project.district,
+          }),
+        }}
+      />
       {/* Breadcrumbs */}
       <Breadcrumbs
         items={[
@@ -160,7 +188,7 @@ export default async function ProjectPage({
           <div className="mt-4 overflow-hidden rounded-2xl">
             <img
               src={neighborhoodImage}
-              alt={`${project.name} 周邊環境`}
+              alt={`${project.name} 周邊配套`}
               className="h-52 w-full object-cover md:h-64"
             />
           </div>
@@ -178,7 +206,7 @@ export default async function ProjectPage({
         </div>
       </section>
 
-      <GallerySection images={galleryImages} />
+      <GallerySection images={galleryImages} projectName={project.name} />
       <FAQSection faq={project.faq} />
 
       {/* Articles — only shown when data is available */}

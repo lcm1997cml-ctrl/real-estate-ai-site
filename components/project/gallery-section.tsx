@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from "react";
 
-export function GallerySection({ images }: { images: string[] }) {
+export function GallerySection({
+  images,
+  projectName,
+}: {
+  images: string[];
+  projectName: string;
+}) {
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
   const hasActive = activeIdx !== null;
 
@@ -26,9 +32,19 @@ export function GallerySection({ images }: { images: string[] }) {
             key={image}
             type="button"
             onClick={() => setActiveIdx(idx)}
-            className="h-56 rounded-xl bg-cover bg-center transition hover:opacity-90"
-            style={{ backgroundImage: `url(${image})` }}
-          />
+            className="relative h-56 w-full overflow-hidden rounded-xl transition hover:opacity-90"
+          >
+            <img
+              src={image}
+              alt={
+                images.length > 1
+                  ? `${projectName} 會所設施 ${idx + 1}`
+                  : `${projectName} 會所設施`
+              }
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
+          </button>
         ))}
       </div>
 
@@ -49,7 +65,11 @@ export function GallerySection({ images }: { images: string[] }) {
           </button>
           <img
             src={images[activeIdx]}
-            alt="Gallery preview"
+            alt={
+              images.length > 1
+                ? `${projectName} 會所設施 ${activeIdx + 1}`
+                : `${projectName} 會所設施`
+            }
             className="max-w-[90%] max-h-[90%]"
             onClick={(e) => e.stopPropagation()}
           />
