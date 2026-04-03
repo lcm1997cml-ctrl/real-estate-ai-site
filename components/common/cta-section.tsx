@@ -18,7 +18,7 @@ export function CTASection({
   whatsappHref,
   whatsappLabel = "WhatsApp 查詢",
 }: Props) {
-  const waHref = whatsappHref ?? getDefaultWhatsAppUrl("你好，我想查詢最新樓盤資訊");
+  const waHref = whatsappHref ?? getDefaultWhatsAppUrl();
   return (
     <section className="rounded-2xl border border-amber-200 bg-amber-50 px-6 py-10 text-center">
       <h2 className="text-2xl font-semibold text-neutral-900">{title}</h2>

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { projects as fallbackProjects } from "@/data/projects";
 import { buildMetadata } from "@/lib/seo";
-import { buildWhatsAppUrl } from "@/lib/whatsapp";
+import { getProjectWhatsAppUrl } from "@/lib/whatsapp";
 import {
   getProjectDetailBySlug,
   getProjects,
@@ -58,10 +58,7 @@ export default async function ProjectPage({
   const allProjects = await getProjects();
   const chartProjects = allProjects.length > 0 ? allProjects : fallbackProjects;
 
-  const waHref = buildWhatsAppUrl(
-    project.whatsappNumber ?? process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "85291234567",
-    project.whatsappMessage,
-  );
+  const waHref = getProjectWhatsAppUrl(project.name);
 
   const hasAnyUnitPrice = project.unitTypes.some((u) => parseHkdPrice(u.priceFrom) > 0);
   const hasProjectPrice =
@@ -105,7 +102,7 @@ export default async function ProjectPage({
         title={`索取 ${project.name} 最新資料`}
         description="可取得入場價、價單更新與付款辦法，作為比較與決策參考。"
         whatsappHref={waHref}
-        whatsappLabel={`WhatsApp 查詢 ${project.name}`}
+        whatsappLabel="WhatsApp 查詢"
       />
 
       {/* Key highlights */}
@@ -143,7 +140,7 @@ export default async function ProjectPage({
         primaryHref="/contact"
         primaryLabel="索取資料"
         whatsappHref={waHref}
-        whatsappLabel="WhatsApp 即時查詢"
+        whatsappLabel="WhatsApp 查詢"
       />
 
       {/* Price comparison chart vs other projects */}
@@ -211,7 +208,7 @@ export default async function ProjectPage({
         title="需要更多此樓盤數據？"
         description="可取得價單資料、比較重點與供款估算參考，幫助你整理下一步決策。"
         whatsappHref={waHref}
-        whatsappLabel={`WhatsApp 查詢 ${project.name}`}
+        whatsappLabel="WhatsApp 查詢"
       />
     </div>
   );

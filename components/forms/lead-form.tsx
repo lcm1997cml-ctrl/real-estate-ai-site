@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { getDefaultWhatsAppUrl } from "@/lib/whatsapp";
 
 const formSchema = z.object({
   name: z.string().min(2, "請輸入姓名"),
@@ -23,7 +24,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 type Props = {
-  /** Pre-filled WhatsApp link for this page/project. Defaults to env NEXT_PUBLIC_WHATSAPP_NUMBER. */
+  /** Pre-filled WhatsApp link for this page/project. Defaults to site default message. */
   whatsappHref?: string;
 };
 
@@ -31,8 +32,7 @@ export function LeadForm({ whatsappHref }: Props) {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
-  const defaultWaNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "85291234567";
-  const waHref = whatsappHref ?? `https://wa.me/${defaultWaNumber}`;
+  const waHref = whatsappHref ?? getDefaultWhatsAppUrl();
 
   const {
     register,
@@ -90,7 +90,7 @@ export function LeadForm({ whatsappHref }: Props) {
       <div className="grid gap-4 md:grid-cols-2">
         <div>
           <Label htmlFor="phone">電話</Label>
-          <Input id="phone" {...register("phone")} placeholder="例如 91234567" />
+          <Input id="phone" {...register("phone")} placeholder="請輸入聯絡電話" />
           {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>}
         </div>
         <div>

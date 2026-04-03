@@ -48,7 +48,7 @@ export default function ContactPage() {
         description="我們可協助提供最新數據資料，支持你作出更清晰的決策。"
         primaryHref="/get-latest-price"
         primaryLabel="索取最新資料"
-        whatsappLabel="WhatsApp 聯絡"
+        whatsappLabel="立即 WhatsApp 聯絡"
       />
     </div>
   );

@@ -100,7 +100,7 @@ export default async function ProjectsPage({
         description="可索取最新價單資料，或先查看分析內容與供款估算工具。"
         primaryHref="/contact"
         primaryLabel="索取資料"
-        whatsappLabel="WhatsApp 即時查詢"
+        whatsappLabel="WhatsApp 查詢"
       />
     </div>
   );

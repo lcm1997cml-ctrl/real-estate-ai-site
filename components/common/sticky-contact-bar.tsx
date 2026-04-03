@@ -12,7 +12,7 @@ export function StickyContactBar() {
           索取最新資料
         </Link>
         <a
-          href={getDefaultWhatsAppUrl("你好，我想查詢最新樓盤資訊")}
+          href={getDefaultWhatsAppUrl()}
           target="_blank"
           rel="noreferrer"
           className="flex-1 rounded-md border px-4 py-3 text-center text-sm font-medium text-neutral-900"

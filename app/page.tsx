@@ -6,7 +6,7 @@ import { ArticleSection } from "@/components/project/article-section";
 import { ProjectCard } from "@/components/project/project-card";
 import { SiteStats } from "@/components/common/site-stats";
 import { buildMetadata } from "@/lib/seo";
-import { buildWhatsAppUrl } from "@/lib/whatsapp";
+import { getDefaultWhatsAppUrl } from "@/lib/whatsapp";
 import { QuickMortgageCalculator } from "@/components/tools/quick-mortgage-calculator";
 import { BarChart2, Scale, Calculator } from "lucide-react";
 import { getProjects } from "@/lib/supabase-data";
@@ -24,10 +24,7 @@ export default async function HomePage() {
   const displayProjects = projects.length > 0 ? projects : fallbackProjects;
   const featured = displayProjects[0];
 
-  const waHref = buildWhatsAppUrl(
-    featured.whatsappNumber ?? process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "85291234567",
-    featured.whatsappMessage,
-  );
+  const waHref = getDefaultWhatsAppUrl();
 
   const features = [
     {
@@ -70,7 +67,7 @@ export default async function HomePage() {
         description="提交資料即可獲取入場價、付款辦法及樓盤分析摘要，作為你決策的參考依據。"
         primaryLabel="索取最新資料"
         whatsappHref={waHref}
-        whatsappLabel={`WhatsApp 查詢 ${featured.name}`}
+        whatsappLabel="WhatsApp 查詢"
       />
 
       {/* All projects grid */}

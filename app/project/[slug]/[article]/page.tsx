@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { projects as fallbackProjects } from "@/data/projects";
 import { buildMetadata } from "@/lib/seo";
-import { buildWhatsAppUrl } from "@/lib/whatsapp";
+import { getProjectWhatsAppUrl } from "@/lib/whatsapp";
 import { Breadcrumbs } from "@/components/common/breadcrumbs";
 import { CTASection } from "@/components/common/cta-section";
 import { getArticleBySlug, getArticleSections } from "@/lib/article-content";
@@ -47,10 +47,7 @@ export default async function ProjectArticlePage({
   if (!article) return notFound();
   const projects = await getProjects();
 
-  const waHref = buildWhatsAppUrl(
-    project.whatsappNumber ?? process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "85291234567",
-    project.whatsappMessage,
-  );
+  const waHref = getProjectWhatsAppUrl(project.name);
 
   const sections = getArticleSections(article.slug, project.district);
   const midPoint = Math.ceil(sections.length / 2);
@@ -95,7 +92,7 @@ export default async function ProjectArticlePage({
                 rel="noreferrer"
                 className="inline-flex h-9 items-center justify-center rounded-lg border px-4 text-sm font-medium text-neutral-900 hover:bg-neutral-100"
               >
-                WhatsApp 即時查詢
+                WhatsApp 查詢
               </a>
             </div>
           </div>
@@ -150,7 +147,7 @@ export default async function ProjectArticlePage({
         title="需要更多分析資料？"
         description="可索取更新資料，並配合比較頁與供款工具整理決策。"
         whatsappHref={waHref}
-        whatsappLabel={`WhatsApp 查詢 ${project.name}`}
+        whatsappLabel="WhatsApp 查詢"
       />
     </div>
   );

@@ -34,7 +34,7 @@ export default function GetLatestPricePage() {
         description="可透過 WhatsApp 直接聯絡，我們提供數據資料支持你的分析。"
         primaryHref="/contact"
         primaryLabel="了解更多"
-        whatsappLabel="WhatsApp 聯絡"
+        whatsappLabel="立即 WhatsApp 聯絡"
       />
     </div>
   );

@@ -160,9 +160,7 @@ export function MortgageCalculator() {
     [result.downPayment, stampDuty, effectiveAgentFee, lawyerFee, renovationCost],
   );
 
-  const waHref = getDefaultWhatsAppUrl(
-    `你好，我用咗按揭計算機，想查詢樓價 ${hkd(price)} / ${term} 年 / ${pct(rate)} 的按揭方案`,
-  );
+  const waHref = getDefaultWhatsAppUrl();
 
   const clampPrice = (value: number) => {
     if (!Number.isFinite(value)) return PRICE_MIN;
@@ -470,7 +468,7 @@ export function MortgageCalculator() {
               rel="noreferrer"
               className="inline-flex h-10 items-center justify-center rounded-lg border px-5 text-sm font-semibold text-neutral-900 hover:bg-amber-100"
             >
-              WhatsApp 即時查詢
+              WhatsApp 查詢
             </a>
             <Link
               href="/projects"

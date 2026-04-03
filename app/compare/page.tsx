@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { buildMetadata } from "@/lib/seo";
 import { getProjects } from "@/lib/supabase-data";
-import { buildWhatsAppUrl } from "@/lib/whatsapp";
+import { getProjectWhatsAppUrl } from "@/lib/whatsapp";
 import { ComparisonTable } from "@/components/common/comparison-table";
 import { ProjectSelector } from "@/components/compare/project-selector";
 import { CTASection } from "@/components/common/cta-section";
@@ -82,10 +82,7 @@ export default async function ComparePage({
           {/* Quick action links */}
           <section className="grid gap-4 sm:grid-cols-2">
             {[projectA, projectB].map((p) => {
-              const waHref = buildWhatsAppUrl(
-                p.whatsappNumber ?? process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "85291234567",
-                p.whatsappMessage,
-              );
+              const waHref = getProjectWhatsAppUrl(p.name);
               return (
                 <div key={p.slug} className="rounded-xl border bg-white p-5">
                   <p className="font-semibold text-neutral-900">{p.name}</p>
@@ -161,7 +158,7 @@ export default async function ComparePage({
         description="你可繼續查看個別樓盤分析、供款計算與最新資料更新。"
         primaryHref="/contact"
         primaryLabel="查看分析"
-        whatsappLabel="WhatsApp 即時查詢"
+        whatsappLabel="WhatsApp 查詢"
       />
     </div>
   );
