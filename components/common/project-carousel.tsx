@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Project } from "@/types/project";
-import { resolveProjectHeroImage } from "@/lib/project-media";
+import { resolveProjectHeroForClient } from "@/lib/project-hero-client";
 
 type Props = {
   projects: Project[];
@@ -46,7 +46,7 @@ export function ProjectCarousel({ projects }: Props) {
           className="absolute inset-0 bg-cover bg-center transition-opacity duration-700"
           style={{
             opacity: i === current ? 1 : 0,
-            backgroundImage: `linear-gradient(to bottom, rgba(17,17,17,.45) 0%, rgba(17,17,17,.2) 40%, rgba(17,17,17,.78) 100%), url(${resolveProjectHeroImage(p)})`,
+            backgroundImage: `linear-gradient(to bottom, rgba(17,17,17,.45) 0%, rgba(17,17,17,.2) 40%, rgba(17,17,17,.78) 100%), url(${resolveProjectHeroForClient(p)})`,
           }}
         />
       ))}

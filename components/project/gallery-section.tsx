@@ -37,9 +37,7 @@ export function GallerySection({
             <img
               src={image}
               alt={
-                images.length > 1
-                  ? `${projectName} 會所設施 ${idx + 1}`
-                  : `${projectName} 會所設施`
+                images.length > 1 ? `${projectName} 圖片 ${idx + 1}` : `${projectName} 圖片`
               }
               className="h-full w-full object-cover"
               loading="lazy"
@@ -67,8 +65,8 @@ export function GallerySection({
             src={images[activeIdx]}
             alt={
               images.length > 1
-                ? `${projectName} 會所設施 ${activeIdx + 1}`
-                : `${projectName} 會所設施`
+                ? `${projectName} 圖片 ${activeIdx + 1}`
+                : `${projectName} 圖片`
             }
             className="max-w-[90%] max-h-[90%]"
             onClick={(e) => e.stopPropagation()}

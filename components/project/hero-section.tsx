@@ -1,11 +1,14 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Project } from "@/types/project";
 import { formatPrice, formatPSF, parseNumber } from "@/lib/price";
-import { resolveProjectHeroImage } from "@/lib/project-media";
+import { resolveProjectHeroWithLocal } from "@/lib/project-media-server";
 
 type Props = {
   project: Project;
+  /** Optional merged hero URL (e.g. local /images/{slug}/); avoids double-scan when set. */
+  heroImageSrc?: string;
   /** Pre-built WhatsApp href — shows a WhatsApp CTA button when provided. */
   waHref?: string;
   /** Compare page href — shows a compare CTA button when provided. */
@@ -14,20 +17,28 @@ type Props = {
   compactStatsText?: boolean;
 };
 
-export function HeroSection({ project, waHref, compareHref, compactStatsText = false }: Props) {
-  const heroImage = resolveProjectHeroImage(project);
+export function HeroSection({
+  project,
+  heroImageSrc,
+  waHref,
+  compareHref,
+  compactStatsText = false,
+}: Props) {
+  const heroImage =
+    heroImageSrc && heroImageSrc.length > 0 ? heroImageSrc : resolveProjectHeroWithLocal(project);
   const priceNum = parseNumber(project.priceFrom);
   const psfNum = parseNumber(project.avgPricePerSqft);
 
   return (
     <section className="relative overflow-hidden rounded-2xl">
       {heroImage ? (
-        <img
+        <Image
           src={heroImage}
           alt={`${project.name} 外觀`}
-          className="absolute inset-0 h-full w-full object-cover"
-          loading="eager"
-          fetchPriority="high"
+          fill
+          className="object-cover"
+          priority
+          sizes="(max-width: 768px) 100vw, min(1152px, 100vw)"
         />
       ) : null}
       <div

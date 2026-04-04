@@ -3,10 +3,10 @@ import { Project } from "@/types/project";
 import { Badge } from "@/components/ui/badge";
 import { calcMortgageMonthly, formatHkd, parseHkdPrice } from "@/lib/mortgage";
 import { formatPrice, formatPSF, parseNumber } from "@/lib/price";
-import { resolveProjectHeroImage } from "@/lib/project-media";
+import { resolveProjectHeroWithLocal } from "@/lib/project-media-server";
 
 export function ProjectCard({ project }: { project: Project }) {
-  const heroImage = resolveProjectHeroImage(project);
+  const heroImage = resolveProjectHeroWithLocal(project);
   const fromPrice = parseHkdPrice(project.priceFrom);
   const priceNum = parseNumber(project.priceFrom);
   const psfNum = parseNumber(project.avgPricePerSqft);

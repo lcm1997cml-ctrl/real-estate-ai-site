@@ -20,10 +20,13 @@ import { FAQSection } from "@/components/project/faq-section";
 import { CTASection } from "@/components/common/cta-section";
 import { ArticleSection } from "@/components/project/article-section";
 import { Breadcrumbs } from "@/components/common/breadcrumbs";
+import { NeighborhoodImageCarousel } from "@/components/project/neighborhood-image-carousel";
 import {
-  resolveProjectGalleryImages,
-  resolveProjectHeroImage,
-  resolveProjectNeighborhoodImage,
+  mergeDetailPageGallery,
+  mergeFloorplanImages,
+  mergeHero,
+  mergeNeighborhoodImages,
+  scanLocalProjectImages,
 } from "@/lib/project-media";
 import { parseHkdPrice } from "@/lib/mortgage";
 
@@ -41,7 +44,8 @@ export async function generateMetadata({
   if (!project) return {};
   const title = `${project.name}｜呎價、戶型、按揭分析｜香港樓盤資訊`;
   const description = `查看 ${project.name} 最新樓盤資料，包括戶型、呎價、按揭供款及周邊配套，幫助你快速比較與決策。`;
-  const heroPath = resolveProjectHeroImage(project);
+  const local = scanLocalProjectImages(slug);
+  const heroPath = mergeHero(project, local);
   const ogImage =
     heroPath && (heroPath.startsWith("http") ? heroPath : `${SITE_URL}${heroPath}`);
   return buildMetadata({
@@ -62,13 +66,16 @@ export default async function ProjectPage({
   const project = await getProjectDetailBySlug(slug);
   if (!project) return notFound();
   const isLaMirabelle = project.slug === "la-mirabelle";
-  const galleryImages = resolveProjectGalleryImages(project);
-  const neighborhoodImage = resolveProjectNeighborhoodImage(project);
-  const heroForJsonLd = resolveProjectHeroImage(project);
+
+  const localImages = scanLocalProjectImages(project.slug);
+  const heroSrc = mergeHero(project, localImages);
+  const floorPlanImages = mergeFloorplanImages(project, localImages);
+  const neighborhoodImages = mergeNeighborhoodImages(project, localImages);
+  const galleryImages = mergeDetailPageGallery(project, localImages);
+
   const projectPageUrl = `${SITE_URL}/project/${project.slug}`;
   const heroAbsolute =
-    heroForJsonLd &&
-    (heroForJsonLd.startsWith("http") ? heroForJsonLd : `${SITE_URL}${heroForJsonLd}`);
+    heroSrc && (heroSrc.startsWith("http") ? heroSrc : `${SITE_URL}${heroSrc}`);
 
   const allProjects = await getProjects();
   const chartProjects = allProjects.length > 0 ? allProjects : fallbackProjects;
@@ -84,11 +91,6 @@ export default async function ProjectPage({
         project.avgPricePerSqft !== "HK$0 / 呎",
     );
   const showPricingSection = project.unitTypes.length > 0 || hasProjectPrice;
-  const floorPlanImages = project.floorPlanImages?.length
-    ? project.floorPlanImages
-    : project.floorPlanImage
-      ? [project.floorPlanImage]
-      : [];
 
   return (
     <div className="mx-auto max-w-6xl space-y-10 px-4 py-8 md:px-6">
@@ -117,6 +119,7 @@ export default async function ProjectPage({
       {/* Hero — with inline CTAs */}
       <HeroSection
         project={project}
+        heroImageSrc={heroSrc}
         waHref={waHref}
         compareHref={`/compare?a=${project.slug}`}
         compactStatsText={isLaMirabelle}
@@ -139,7 +142,7 @@ export default async function ProjectPage({
       {/* Suitability — who should buy this */}
       <SuitabilityCard project={project} />
 
-      {/* Floor plans — DB image_type=floorplan or local floorPlanImage */}
+      {/* Floor plans — local public/images/{slug}/ floorplan-* first, else DB */}
       {floorPlanImages.length > 0 && (
         <FloorplanSection images={floorPlanImages} projectName={project.name} />
       )}
@@ -184,15 +187,7 @@ export default async function ProjectPage({
             {project.neighborhoodDescription}
           </div>
         )}
-        {neighborhoodImage && (
-          <div className="mt-4 overflow-hidden rounded-2xl">
-            <img
-              src={neighborhoodImage}
-              alt={`${project.name} 周邊配套`}
-              className="h-52 w-full object-cover md:h-64"
-            />
-          </div>
-        )}
+        <NeighborhoodImageCarousel images={neighborhoodImages} projectName={project.name} />
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {project.nearbyFacilities.map((f) => (
             <div key={f.name} className="rounded-xl border bg-white p-4">
@@ -206,7 +201,9 @@ export default async function ProjectPage({
         </div>
       </section>
 
-      <GallerySection images={galleryImages} projectName={project.name} />
+      {galleryImages.length > 0 && (
+        <GallerySection images={galleryImages} projectName={project.name} />
+      )}
       <FAQSection faq={project.faq} />
 
       {/* Articles — only shown when data is available */}
