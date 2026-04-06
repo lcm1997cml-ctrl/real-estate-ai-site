@@ -30,6 +30,9 @@ import {
 } from "@/lib/project-media";
 import { parseHkdPrice } from "@/lib/mortgage";
 
+/** 每次請求重新讀取 Supabase + 掃描 public/images，避免部署後仍顯示舊靜態快照 */
+export const dynamic = "force-dynamic";
+
 export function generateStaticParams() {
   return fallbackProjects.map((project) => ({ slug: project.slug }));
 }
@@ -200,7 +203,7 @@ export default async function ProjectPage({
           ))}
         </div>
       </section>
-
+      connexxt
       {galleryImages.length > 0 && (
         <GallerySection images={galleryImages} projectName={project.name} />
       )}

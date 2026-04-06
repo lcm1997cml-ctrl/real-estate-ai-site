@@ -5,6 +5,8 @@ import { getProjects } from "@/lib/supabase-data";
 import { ProjectCard } from "@/components/project/project-card";
 import { CTASection } from "@/components/common/cta-section";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = buildMetadata({
   title: "香港新盤一覽 | 按地區篩選及比較樓盤",
   description:

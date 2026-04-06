@@ -12,6 +12,8 @@ import { BarChart2, Scale, Calculator } from "lucide-react";
 import { getProjects } from "@/lib/supabase-data";
 import { projects as fallbackProjects } from "@/data/projects";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = buildMetadata({
   title: "香港一手樓盤數據分析 | 比較、計算、決策",
   description:

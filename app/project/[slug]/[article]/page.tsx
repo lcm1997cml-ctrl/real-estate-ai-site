@@ -11,6 +11,8 @@ import { ComparisonTable } from "@/components/common/comparison-table";
 import { LeadForm } from "@/components/forms/lead-form";
 import { getProjectDetailBySlug, getProjects } from "@/lib/supabase-data";
 
+export const dynamic = "force-dynamic";
+
 export function generateStaticParams() {
   return fallbackProjects.flatMap((project) =>
     project.articles.map((article) => ({ slug: project.slug, article: article.slug })),

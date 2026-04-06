@@ -338,8 +338,13 @@ export async function getProjectDetailBySlug(slug: string): Promise<Project | nu
   });
 
   const fallbackProject = fallbackProjects.find((p) => p.slug === slug);
+  /** Supabase 有戶型資料則只用 DB；僅 la-mirabelle 保留本地 TS 後備（與 getProjectUnits 特例一致） */
   const mergedUnitTypes =
-    unitTypes.length > 0 ? unitTypes : fallbackProject?.unitTypes ?? [];
+    unitTypes.length > 0
+      ? unitTypes
+      : slug === "la-mirabelle"
+        ? (fallbackProject?.unitTypes ?? [])
+        : [];
 
   const priceMins = mergedUnitTypes.map((u) => u.priceMin ?? 0).filter((n) => n > 0);
   const psfVals = mergedUnitTypes.map((u) => u.pricePsf ?? 0).filter((n) => n > 0);
@@ -359,6 +364,7 @@ export async function getProjectDetailBySlug(slug: string): Promise<Project | nu
   const mergedGallery = Array.from(
     new Set(
       [
+        ...(supabaseProject.galleryImages ?? []),
         ...imageAssets.gallery,
         ...images,
         ...(slug === "la-mirabelle" ? LA_MIRABELLE_GALLERY_FALLBACK : []),
@@ -366,11 +372,12 @@ export async function getProjectDetailBySlug(slug: string): Promise<Project | nu
       ].filter((path) => isUsableImagePath(path)),
     ),
   );
-  const finalHeroForLaMirabelle = isUsableImagePath(LA_MIRABELLE_HERO)
-    ? LA_MIRABELLE_HERO
-    : (isUsableImagePath(imageAssets.hero) ? imageAssets.hero : "") ||
-      (isUsableImagePath(supabaseProject.heroImage) ? supabaseProject.heroImage : "") ||
-      LA_MIRABELLE_OLD_HERO;
+  /** DB / project_images 優先，硬編碼預設圖僅作最後後備（避免 Supabase 更新 hero 仍被蓋掉） */
+  const finalHeroForLaMirabelle =
+    (isUsableImagePath(imageAssets.hero) ? imageAssets.hero : "") ||
+    (isUsableImagePath(supabaseProject.heroImage) ? supabaseProject.heroImage : "") ||
+    (isUsableImagePath(LA_MIRABELLE_HERO) ? LA_MIRABELLE_HERO : "") ||
+    LA_MIRABELLE_OLD_HERO;
 
   const finalHero =
     slug === "la-mirabelle"

@@ -7,6 +7,8 @@ import { ProjectSelector } from "@/components/compare/project-selector";
 import { CTASection } from "@/components/common/cta-section";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = buildMetadata({
   title: "比較兩個樓盤 | 並排比較樓盤數據",
   description: "以價格、呎價、地區、戶型與配套等維度並排比較樓盤數據，協助你更有系統地篩選選項。",
