@@ -114,9 +114,16 @@ function normalizeProjectFromSupabase(row: Record<string, unknown>): Project {
     district: String(row.district ?? ""),
     subArea: String(row.sub_area ?? "") || undefined,
     priceFrom:
-      priceFromNum > 0 ? formatPrice(priceFromNum) : slug === "pavilia-farm-iii" ? "-" : "HK$0",
+      priceFromNum > 0
+        ? formatPrice(priceFromNum)
+        : slug === "pavilia-farm-iii" || slug === "connexxt"
+          ? "-"
+          : "HK$0",
     avgPricePerSqft:
-      psfNum > 0 ? formatPSF(psfNum) : psfRangeLabel ?? "HK$0 / 呎",
+      psfNum > 0
+        ? formatPSF(psfNum)
+        : psfRangeLabel ??
+          (slug === "pavilia-farm-iii" || slug === "connexxt" ? "-" : "HK$0 / 呎"),
     developer: String(row.developer ?? "未提供"),
     status: String(row.status ?? "資料更新中"),
     tags: Array.isArray(row.tags) ? row.tags.map((tag) => String(tag)) : [],
@@ -156,7 +163,13 @@ export async function getProjects(): Promise<Project[]> {
 }
 
 export async function getProjectBySlug(slug: string): Promise<Project | null> {
-  const { data, error } = await supabase.from("projects").select("*").eq("slug", slug).maybeSingle();
+  /** limit(1)：若 DB 誤存多筆相同 slug，避免 maybeSingle() 報錯而整段 fallback 到本地舊資料 */
+  const { data, error } = await supabase
+    .from("projects")
+    .select("*")
+    .eq("slug", slug)
+    .limit(1)
+    .maybeSingle();
 
   if (error) {
     console.error("[Supabase] getProjectBySlug error:", error);

@@ -336,6 +336,70 @@ export const projects: Project[] = [
   },
 
   {
+    slug: "connexxt",
+    name: "CONNEXXT 薈悅",
+    district: "九龍",
+    subArea: "飛凰街",
+    priceFrom: "-",
+    avgPricePerSqft: "-",
+    developer: "未提供",
+    status: "待售",
+    tags: ["九龍新盤", "飛凰街", "開放式至三房"],
+    heroImage: "/images/connexxt/connexxt-hero.jpg",
+    galleryImages: [
+      "/images/connexxt/connexxt-hero.jpg",
+      "/images/connexxt/connexxt-neighborhood-1.jpg",
+    ],
+    neighborhoodImage: "/images/connexxt/connexxt-neighborhood-1.jpg",
+    neighborhoodDescription: "之後可再補",
+    highlights: [
+      "九龍飛凰街33號，提供195伙",
+      "戶型由開放式至三房一套連工人套，實用面積約200至679平方呎",
+      "鄰近港鐵宋皇臺站及土瓜灣站，交通便捷",
+    ],
+    unitTypes: [
+      { name: "開放式", area: "200-209 呎", priceFrom: "-", layout: "" },
+      { name: "2房（開廚）", area: "324-376 呎", priceFrom: "-", layout: "" },
+      { name: "3房（開廚）", area: "400-472 呎", priceFrom: "-", layout: "" },
+      { name: "3房", area: "462 呎", priceFrom: "-", layout: "" },
+      { name: "3房1套（開廚）", area: "481-520 呎", priceFrom: "-", layout: "" },
+      { name: "3房1套連工人套", area: "666-679 呎", priceFrom: "-", layout: "" },
+    ],
+    nearbyFacilities: [
+      { category: "交通", name: "港鐵宋皇臺站", distance: "步行約數分鐘" },
+      { category: "交通", name: "港鐵土瓜灣站", distance: "步行約數分鐘" },
+    ],
+    faq: [
+      {
+        question: "CONNEXXT 薈悅位置在哪？",
+        answer: "項目位於九龍飛凰街33號，鄰近宋皇臺及土瓜灣站一帶，往返市區及新界主要節點便利。",
+      },
+    ],
+    seoKeywords: ["CONNEXXT", "薈悅", "飛凰街", "九龍新盤", "connexxt"],
+    shortDescription:
+      "CONNEXXT 薈悅位於九龍飛凰街33號，提供195伙，戶型由開放式至三房一套連工人套，實用面積由200至679平方呎。",
+    whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "85291234567",
+    whatsappMessage: "你好，我想查詢 CONNEXXT 薈悅嘅最新價單及付款辦法，謝謝！",
+    articles: [
+      {
+        slug: "investment-analysis",
+        title: "CONNEXXT 薈悅置業分析",
+        description: "從交通、配套及戶型分佈角度整理入市參考。",
+      },
+      {
+        slug: "faq-guide",
+        title: "CONNEXXT 薈悅常見問題",
+        description: "整合按揭、配套及戶型相關疑問。",
+      },
+      {
+        slug: "get-price-list",
+        title: "索取 CONNEXXT 薈悅最新資料",
+        description: "登記後獲取銷售安排及付款辦法參考。",
+      },
+    ],
+  },
+
+  {
     slug: "ho-man-tin-grandeur",
     name: "皇御峰 Grandeur",
     district: "何文田",
