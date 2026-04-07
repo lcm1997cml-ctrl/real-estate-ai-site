@@ -248,6 +248,7 @@ BEGIN
     ('connexxt', '3房', 4, '462 呎'),
     ('connexxt', '3房1套（開廚）', 5, '481-520 呎'),
     ('connexxt', '3房1套連工人套', 6, '666-679 呎');
+  -- 入場價／呎價請在表內有 price_min、price_psf 後執行 scripts/supabase-connexxt-units-prices-example.sql
 END
 $units$;
 

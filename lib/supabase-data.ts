@@ -2,6 +2,7 @@ import { projects as fallbackProjects } from "@/data/projects";
 import { FAQItem, Project } from "@/types/project";
 import { supabase } from "@/lib/supabase";
 import { formatPrice, formatPSF } from "@/lib/price";
+import { parseDbNumeric } from "@/lib/supabase-numeric";
 import { withListingHeroResolved, withListingHeroResolvedAll } from "@/lib/project-media-server";
 
 const LA_MIRABELLE_HERO = "/images/la-mirabelle/la-mirabelle-hero-new.jpg";
@@ -114,17 +115,8 @@ function normalizeProjectFromSupabase(row: Record<string, unknown>): Project {
     name: String(row.name ?? "未命名樓盤"),
     district: String(row.district ?? ""),
     subArea: String(row.sub_area ?? "") || undefined,
-    priceFrom:
-      priceFromNum > 0
-        ? formatPrice(priceFromNum)
-        : slug === "pavilia-farm-iii" || slug === "connexxt"
-          ? "-"
-          : "HK$0",
-    avgPricePerSqft:
-      psfNum > 0
-        ? formatPSF(psfNum)
-        : psfRangeLabel ??
-          (slug === "pavilia-farm-iii" || slug === "connexxt" ? "-" : "HK$0 / 呎"),
+    priceFrom: priceFromNum > 0 ? formatPrice(priceFromNum) : "-",
+    avgPricePerSqft: psfNum > 0 ? formatPSF(psfNum) : psfRangeLabel ?? "-",
     developer: String(row.developer ?? "未提供"),
     status: String(row.status ?? "資料更新中"),
     tags: Array.isArray(row.tags) ? row.tags.map((tag) => String(tag)) : [],
@@ -145,6 +137,38 @@ function normalizeProjectFromSupabase(row: Record<string, unknown>): Project {
   };
 }
 
+/** `project_images` 中 image_type = hero/banner 優先於 `projects.hero_image_url`（列表與首頁輪播） */
+async function attachHeroFromProjectImages(projects: Project[]): Promise<Project[]> {
+  const ids = projects.map((p) => p.id).filter((id) => id && String(id).trim());
+  if (ids.length === 0) return projects;
+
+  const { data, error } = await supabase
+    .from("project_images")
+    .select("project_id, image_url, image_type, sort_order")
+    .in("project_id", ids)
+    .order("sort_order", { ascending: true });
+
+  if (error || !data?.length) {
+    if (error) console.error("[Supabase] attachHeroFromProjectImages:", error);
+    return projects;
+  }
+
+  const heroByPid = new Map<string, string>();
+  for (const row of data) {
+    const pid = String((row as { project_id?: unknown }).project_id ?? "");
+    const url = String((row as { image_url?: unknown }).image_url ?? "").trim();
+    const raw = String((row as { image_type?: unknown }).image_type ?? "").toLowerCase();
+    if (!pid || !url || heroByPid.has(pid)) continue;
+    if (raw === "hero" || raw === "banner") heroByPid.set(pid, url);
+  }
+
+  return projects.map((p) => {
+    const h = p.id ? heroByPid.get(p.id) : undefined;
+    if (h && isUsableImagePath(h)) return { ...p, heroImage: h };
+    return p;
+  });
+}
+
 export async function getProjects(): Promise<Project[]> {
   const { data, error } = await supabase.from("projects").select("*");
 
@@ -159,8 +183,9 @@ export async function getProjects(): Promise<Project[]> {
   }
 
   const normalized = data.map((row) => normalizeProjectFromSupabase(row as Record<string, unknown>));
-  console.log(`[Supabase] getProjects success: ${normalized.length} rows`);
-  return withListingHeroResolvedAll(normalized);
+  const withDbHero = await attachHeroFromProjectImages(normalized);
+  console.log(`[Supabase] getProjects success: ${withDbHero.length} rows`);
+  return withListingHeroResolvedAll(withDbHero);
 }
 
 export async function getProjectBySlug(slug: string): Promise<Project | null> {
@@ -185,8 +210,9 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
   }
 
   const normalized = normalizeProjectFromSupabase(data as Record<string, unknown>);
+  const [withHero] = await attachHeroFromProjectImages([normalized]);
   console.log(`[Supabase] getProjectBySlug success: ${slug}`);
-  return withListingHeroResolved(normalized);
+  return withListingHeroResolved(withHero ?? normalized);
 }
 
 export async function getProjectImages(projectId: string): Promise<string[]> {
@@ -232,7 +258,9 @@ async function getProjectImageAssets(projectId: string) {
   const neighborhood =
     rows.find((r) => ["neighborhood", "nearby", "surroundings"].includes(r.imageType))?.imageUrl ?? "";
   const gallery = rows
-    .filter((r) => ["gallery", "amenities", "floorplan", "siteplan"].includes(r.imageType))
+    .filter((r) =>
+      ["gallery", "amenities", "layout", "floorplan", "siteplan"].includes(r.imageType),
+    )
     .map((r) => r.imageUrl)
     .filter(Boolean);
   const floorplans = rows
@@ -266,9 +294,9 @@ export async function getProjectUnits(projectSlug: string) {
       description?: unknown;
       sort_order?: unknown;
     };
-    const areaSqft = Number(item.area_sqft ?? 0);
-    const priceMin = Number(item.price_min ?? 0);
-    const pricePsf = Number(item.price_psf ?? 0);
+    const areaSqft = parseDbNumeric(item.area_sqft);
+    const priceMin = parseDbNumeric(item.price_min);
+    const pricePsf = parseDbNumeric(item.price_psf);
     const rawDesc = String(item.description ?? "").trim();
     const descAsArea = /呎/.test(rawDesc) ? rawDesc : "";
     const areaText = descAsArea || (areaSqft > 0 ? `${areaSqft} 呎` : rawDesc || "—");
@@ -346,7 +374,7 @@ export async function getProjectDetailBySlug(slug: string): Promise<Project | nu
     const areaSqft = Number(row.areaSqft ?? 0);
     const areaText =
       row.area && row.area !== "—" ? row.area : areaSqft > 0 ? `${areaSqft} 呎` : "—";
-    const priceMin = Number(row.priceMin ?? 0);
+    const priceMin = parseDbNumeric(row.priceMin);
     const layoutText = String(row.layout ?? row.description ?? "");
     return {
       name: String(row.name),
@@ -355,7 +383,7 @@ export async function getProjectDetailBySlug(slug: string): Promise<Project | nu
       area: areaText,
       priceMin,
       priceFrom: priceMin > 0 ? formatPrice(priceMin) : "-",
-      pricePsf: Number(row.pricePsf ?? 0),
+      pricePsf: parseDbNumeric(row.pricePsf),
       description: String(row.description ?? ""),
       layout: layoutText,
       sortOrder: Number(row.sortOrder ?? 0),
@@ -363,9 +391,8 @@ export async function getProjectDetailBySlug(slug: string): Promise<Project | nu
   });
 
   const fallbackProject = fallbackProjects.find((p) => p.slug === slug);
-  /** DB 有戶型列則用 DB；否則用 data/projects 後備（connexxt / 各盤與 la-mirabelle 一致） */
-  const mergedUnitTypes =
-    unitTypes.length > 0 ? unitTypes : (fallbackProject?.unitTypes ?? []);
+  /** 戶型價格以 `project_units` 為準；成功讀 DB 時不再用 data/projects 蓋過（空陣列＝後台尚未建戶型） */
+  const mergedUnitTypes = unitTypes;
 
   const priceMins = mergedUnitTypes.map((u) => u.priceMin ?? 0).filter((n) => n > 0);
   const psfVals = mergedUnitTypes.map((u) => u.pricePsf ?? 0).filter((n) => n > 0);
@@ -382,39 +409,30 @@ export async function getProjectDetailBySlug(slug: string): Promise<Project | nu
           ? [fallbackProject.floorPlanImage]
           : [];
 
-  const mergedGallery = Array.from(
+  let mergedGallery = Array.from(
     new Set(
-      [
-        ...(supabaseProject.galleryImages ?? []),
-        ...imageAssets.gallery,
-        ...images,
-        ...(slug === "la-mirabelle" ? LA_MIRABELLE_GALLERY_FALLBACK : []),
-        ...(slug === "pavilia-farm-iii" ? PAVILIA_FARM_III_GALLERY_FALLBACK : []),
-      ].filter((path) => isUsableImagePath(path)),
+      [...(supabaseProject.galleryImages ?? []), ...imageAssets.gallery, ...images].filter((path) =>
+        isUsableImagePath(path),
+      ),
     ),
   );
-  /** DB / project_images 優先，硬編碼預設圖僅作最後後備（避免 Supabase 更新 hero 仍被蓋掉） */
-  const finalHeroForLaMirabelle =
+  if (mergedGallery.length === 0) {
+    if (slug === "la-mirabelle") mergedGallery = [...LA_MIRABELLE_GALLERY_FALLBACK];
+    else if (slug === "pavilia-farm-iii") mergedGallery = [...PAVILIA_FARM_III_GALLERY_FALLBACK];
+  }
+  /** project_images.hero → projects.hero_image_url → 舊站硬編碼（僅前兩者皆空） */
+  const finalHero =
     (isUsableImagePath(imageAssets.hero) ? imageAssets.hero : "") ||
     (isUsableImagePath(supabaseProject.heroImage) ? supabaseProject.heroImage : "") ||
-    (isUsableImagePath(LA_MIRABELLE_HERO) ? LA_MIRABELLE_HERO : "") ||
-    LA_MIRABELLE_OLD_HERO;
-
-  const finalHero =
-    slug === "la-mirabelle"
-      ? finalHeroForLaMirabelle
+    (slug === "la-mirabelle"
+      ? isUsableImagePath(LA_MIRABELLE_HERO)
+        ? LA_MIRABELLE_HERO
+        : LA_MIRABELLE_OLD_HERO
       : slug === "pavilia-farm-iii"
-        ? (isUsableImagePath(imageAssets.hero) ? imageAssets.hero : "") ||
-          (isUsableImagePath(supabaseProject.heroImage) ? supabaseProject.heroImage : "") ||
-          PAVILIA_FARM_III_HERO
-        : (isUsableImagePath(imageAssets.hero) ? imageAssets.hero : "") ||
-          (isUsableImagePath(supabaseProject.heroImage) ? supabaseProject.heroImage : "");
+        ? PAVILIA_FARM_III_HERO
+        : "");
   const finalGallery =
-    slug === "la-mirabelle" || slug === "pavilia-farm-iii"
-      ? mergedGallery
-      : mergedGallery.length > 0
-        ? mergedGallery
-        : supabaseProject.galleryImages;
+    mergedGallery.length > 0 ? mergedGallery : supabaseProject.galleryImages;
 
   if (slug === "la-mirabelle") {
     console.log(`[ImageMapping][la-mirabelle] final hero: ${finalHero}`);
