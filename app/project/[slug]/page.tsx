@@ -203,7 +203,7 @@ export default async function ProjectPage({
           ))}
         </div>
       </section>
-      connexxt
+
       {galleryImages.length > 0 && (
         <GallerySection images={galleryImages} projectName={project.name} />
       )}

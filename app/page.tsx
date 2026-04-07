@@ -10,7 +10,6 @@ import { getDefaultWhatsAppUrl } from "@/lib/whatsapp";
 import { QuickMortgageCalculator } from "@/components/tools/quick-mortgage-calculator";
 import { BarChart2, Scale, Calculator } from "lucide-react";
 import { getProjects } from "@/lib/supabase-data";
-import { projects as fallbackProjects } from "@/data/projects";
 
 export const dynamic = "force-dynamic";
 
@@ -22,8 +21,7 @@ export const metadata: Metadata = buildMetadata({
 });
 
 export default async function HomePage() {
-  const projects = await getProjects();
-  const displayProjects = projects.length > 0 ? projects : fallbackProjects;
+  const displayProjects = await getProjects();
   const featured = displayProjects[0];
 
   const waHref = getDefaultWhatsAppUrl();

@@ -2,6 +2,7 @@ import { projects as fallbackProjects } from "@/data/projects";
 import { FAQItem, Project } from "@/types/project";
 import { supabase } from "@/lib/supabase";
 import { formatPrice, formatPSF } from "@/lib/price";
+import { withListingHeroResolved, withListingHeroResolvedAll } from "@/lib/project-media-server";
 
 const LA_MIRABELLE_HERO = "/images/la-mirabelle/la-mirabelle-hero-new.jpg";
 const LA_MIRABELLE_OLD_HERO = "/images/la-mirabelle/la-mirabelle-hero.jpg";
@@ -149,17 +150,17 @@ export async function getProjects(): Promise<Project[]> {
 
   if (error) {
     console.error("[Supabase] getProjects error:", error);
-    return fallbackProjects;
+    return withListingHeroResolvedAll(fallbackProjects);
   }
 
   if (!data || data.length === 0) {
     console.log("[Supabase] getProjects empty, fallback to local data");
-    return fallbackProjects;
+    return withListingHeroResolvedAll(fallbackProjects);
   }
 
   const normalized = data.map((row) => normalizeProjectFromSupabase(row as Record<string, unknown>));
   console.log(`[Supabase] getProjects success: ${normalized.length} rows`);
-  return normalized;
+  return withListingHeroResolvedAll(normalized);
 }
 
 export async function getProjectBySlug(slug: string): Promise<Project | null> {
@@ -173,17 +174,19 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
 
   if (error) {
     console.error("[Supabase] getProjectBySlug error:", error);
-    return fallbackProjects.find((p) => p.slug === slug) ?? null;
+    const fb = fallbackProjects.find((p) => p.slug === slug);
+    return fb ? withListingHeroResolved(fb) : null;
   }
 
   if (!data) {
     console.log(`[Supabase] getProjectBySlug empty for slug=${slug}, fallback local`);
-    return fallbackProjects.find((p) => p.slug === slug) ?? null;
+    const fb = fallbackProjects.find((p) => p.slug === slug);
+    return fb ? withListingHeroResolved(fb) : null;
   }
 
   const normalized = normalizeProjectFromSupabase(data as Record<string, unknown>);
   console.log(`[Supabase] getProjectBySlug success: ${slug}`);
-  return normalized;
+  return withListingHeroResolved(normalized);
 }
 
 export async function getProjectImages(projectId: string): Promise<string[]> {
@@ -302,13 +305,22 @@ export async function getProjectDetailBySlug(slug: string): Promise<Project | nu
   const supabaseProject = await getProjectBySlug(slug);
   if (!supabaseProject) return null;
 
-  // Supabase lookup failed or slug missing -> already fallback project
+  // Supabase lookup failed或列無 id：補齊本地 fallback 戶型／配套，避免戶型區整段消失
   if (!supabaseProject.id || !supabaseProject.id.trim()) {
     const fp = supabaseProject.floorPlanImage;
-    return {
+    const fb = fallbackProjects.find((p) => p.slug === slug);
+    const merged: Project = {
       ...supabaseProject,
+      unitTypes:
+        supabaseProject.unitTypes.length > 0 ? supabaseProject.unitTypes : (fb?.unitTypes ?? []),
+      nearbyFacilities:
+        supabaseProject.nearbyFacilities.length > 0
+          ? supabaseProject.nearbyFacilities
+          : (fb?.nearbyFacilities ?? []),
+      faq: supabaseProject.faq.length > 0 ? supabaseProject.faq : (fb?.faq ?? []),
       floorPlanImages: fp && isUsableImagePath(fp) ? [fp] : [],
     };
+    return withListingHeroResolved(merged);
   }
 
   const [images, highlights, faqs, units] = await Promise.all([
@@ -342,7 +354,7 @@ export async function getProjectDetailBySlug(slug: string): Promise<Project | nu
       areaSqft,
       area: areaText,
       priceMin,
-      priceFrom: formatPrice(priceMin),
+      priceFrom: priceMin > 0 ? formatPrice(priceMin) : "-",
       pricePsf: Number(row.pricePsf ?? 0),
       description: String(row.description ?? ""),
       layout: layoutText,
@@ -351,13 +363,9 @@ export async function getProjectDetailBySlug(slug: string): Promise<Project | nu
   });
 
   const fallbackProject = fallbackProjects.find((p) => p.slug === slug);
-  /** Supabase 有戶型資料則只用 DB；僅 la-mirabelle 保留本地 TS 後備（與 getProjectUnits 特例一致） */
+  /** DB 有戶型列則用 DB；否則用 data/projects 後備（connexxt / 各盤與 la-mirabelle 一致） */
   const mergedUnitTypes =
-    unitTypes.length > 0
-      ? unitTypes
-      : slug === "la-mirabelle"
-        ? (fallbackProject?.unitTypes ?? [])
-        : [];
+    unitTypes.length > 0 ? unitTypes : (fallbackProject?.unitTypes ?? []);
 
   const priceMins = mergedUnitTypes.map((u) => u.priceMin ?? 0).filter((n) => n > 0);
   const psfVals = mergedUnitTypes.map((u) => u.pricePsf ?? 0).filter((n) => n > 0);

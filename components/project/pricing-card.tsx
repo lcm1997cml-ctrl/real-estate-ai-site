@@ -41,7 +41,7 @@ export function PricingCard({ unit }: { unit: UnitType }) {
       {hasPrice ? (
         <p className="mt-3 text-2xl font-semibold text-neutral-900">{unit.priceFrom}</p>
       ) : (
-        <p className="mt-3 text-sm text-neutral-400">價格待更新</p>
+        <p className="mt-3 text-sm text-neutral-400">價錢待更新</p>
       )}
 
       {/* Specs */}

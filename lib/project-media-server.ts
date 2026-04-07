@@ -34,3 +34,16 @@ export function resolveProjectNeighborhoodImage(project: Project): string {
   const local = scanLocalProjectImages(project.slug);
   return mergeNeighborhoodImages(project, local)[0] ?? "";
 }
+
+/**
+ * 列表／輪播／卡片：與詳情頁相同順序 — mergeHero（本機 public/images/{slug}/*-hero* → DB hero → gallery 首張）。
+ * 寫入 `heroImage` 後，Client（如 ProjectCarousel）只靠 `project.heroImage` 即可與 ProjectCard 一致。
+ */
+export function withListingHeroResolved(project: Project): Project {
+  const local = scanLocalProjectImages(project.slug);
+  return { ...project, heroImage: mergeHero(project, local) };
+}
+
+export function withListingHeroResolvedAll(projects: Project[]): Project[] {
+  return projects.map(withListingHeroResolved);
+}
